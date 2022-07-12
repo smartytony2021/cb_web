@@ -13,7 +13,13 @@ export default {
     ...mapGetters([
       'name'
     ])
+  },
+  created() {
+    
+console.log('------------------------')
+console.log(process.env.NODE_ENV)
   }
+
 }
 </script>
 

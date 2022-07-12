@@ -22,61 +22,13 @@ const users = {
     name: 'Normal Editor'
   }
 }
-
 module.exports = [
-  // user login
   {
-    url: '/vue-admin-template/user/login',
-    type: 'post',
-    response: config => {
-      const { username } = config.body
-      const token = tokens[username]
-
-      // mock error
-      if (!token) {
-        return {
-          code: 60204,
-          message: 'Account and password are incorrect.'
-        }
-      }
-
-      return {
-        code: 20000,
-        data: token
-      }
-    }
-  },
-
-  // get user info
-  {
-    url: '/vue-admin-template/user/info\.*',
+    url: '/test',
     type: 'get',
-    response: config => {
-      const { token } = config.query
-      const info = users[token]
-
-      // mock error
-      if (!info) {
-        return {
-          code: 50008,
-          message: 'Login failed, unable to get user details.'
-        }
-      }
-
+    response: res => {
       return {
-        code: 20000,
-        data: info
-      }
-    }
-  },
-
-  // user logout
-  {
-    url: '/vue-admin-template/user/logout',
-    type: 'post',
-    response: _ => {
-      return {
-        code: 20000,
+        code: 0,
         data: 'success'
       }
     }
