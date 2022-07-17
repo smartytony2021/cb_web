@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper home">
     <div class="flex-1 index-page">
       <div class="page">
         <div class="header flex">
@@ -15,32 +15,22 @@
             </div>
           </div>
 
-          <div class="flex-right">
+          <!-- 切换语言 - start -->
+          <div class="flex-right" @click="switchLanguage = !switchLanguage">
             <div class="flex-center-center switch-language">
-              <img src="@/assets/images/zh-CN.png" alt="" class="rightImg">
-              <label class="language">中文</label>
-              <div v-if="switchLanguage" class="rightup">
-                <div class="rightBox">
-                  <p class="hairline ac">
-                    <img src="@/assets/images/zh-CN.png" alt="">
-                    中文
-                  </p>
-                </div>
-                <div class="rightBox">
-                  <p class="hairline ac">
-                    <img src="@/assets/images/zh-CN.png" alt="">
-                    中文
-                  </p>
-                </div>
-                <div class="rightBox">
-                  <p class="hairline ac">
-                    <img src="@/assets/images/zh-CN.png" alt="">
-                    中文
+              <img :src="languageDefault.url" alt="" class="rightImg">
+              <label class="language">{{ languageDefault.name }}</label>
+              <div v-if="switchLanguage" class="rightup" @click.stop>
+                <div v-for="(item,index) in languageList" :key="index+''" class="rightBox" @click="handleswitchLanguage(item)">
+                  <p class="van-hairline--bottom" :class="index == languageIndex ? 'ac' : ''">
+                    <img :src="item.url" alt="">
+                    {{ item.name }}
                   </p>
                 </div>
               </div>
             </div>
           </div>
+          <!-- 切换语言 - end -->
         </div>
 
         <!-- 内容区域 - start -->
@@ -80,12 +70,27 @@
 
             <!-- 会员信息 - start -->
             <div class="login-info">
-              <div class="nologin">
+              <!-- <div class="nologin">
                 <div class="unlogin">中心钱包</div>
                 <div class="">登录后查看</div>
+              </div> -->
+              <div class="islogin">
+                <div class="name">smartytony</div>
+                <div class="balance">
+                  <span>0.00</span>
+                  <img :class="{spinner:isReloadBalance}" src="data:image/png;base64,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" @click="handleReloadBalance">
+                </div>
               </div>
 
               <div class="service">
+                <div>
+                  <div class="cunkuan bgimg" />
+                  <span>存款</span>
+                </div>
+                <div>
+                  <div class="qukuan bgimg" />
+                  <span>提款</span>
+                </div>
                 <div>
                   <div class="serve bgimg" />
                   <span>客服</span>
@@ -139,82 +144,40 @@
             <!-- 游戏 - start -->
             <div class="gameBox">
               <div class="title">哈希彩种 HOT</div>
-              <van-tabs
-                class="tab-style list-tab-style"
-                swipeable
-              >
-
-                <van-tab v-for="item in 6" :key="item+''">
+              <van-tabs class="tab-style list-tab-style" swipeable @click="gameChange">
+                <van-tab v-for="(item,index) in gameList" :key="index+''">
                   <!--自定义标题（#title必不可少）-->
                   <template #title>
-                    <div class="gameitem lucky_hash">
-                      <span>幸运哈希</span>
+                    <div class="gameitem" :class="index === gameIndex? item.enname+'_active': item.enname">
+                      <span>{{ item.name }}</span>
                     </div>
                   </template>
 
                   <div class="game_content">
-                    <div class="listBanner four">
-                      <div class="time_title">体验房</div>
-                      <div class="pad">
-                        <div class="playName">幸运哈希</div>
-                        <div class="high">
-                          最高赔率
-                          <span class="odds">1.98</span>
+                    <template v-if="item.children && item.children.length>0">
+                      <div v-for="(cItem,cIndex) in item.children" :key="cIndex+''" class="listBanner four" :style="{backgroundImage: 'url('+cItem.img+')'}" @click="gameEnter(cItem)">
+                        <div class="time_title">{{ cItem.name }}</div>
+                        <div class="pad">
+                          <div class="playName">{{ item.name }}</div>
+                          <div class="high">
+                            最高赔率
+                            <span class="odds">{{ cItem.maxOdds }}</span>
+                          </div>
+                          <div class="high">
+                            限注
+                            <span class="otherSize">{{ cItem.min }}-{{ cItem.max }}U</span>
+                          </div>
+                          <button class="gameButton">立即去玩</button>
                         </div>
-                        <div class="high">
-                          限注
-                          <span class="otherSize">0-200U</span>
-                        </div>
-                        <button class="gameButton">立即去玩</button>
                       </div>
-                    </div>
-                    <div class="listBanner four">
-                      <div class="time_title">体验房</div>
-                      <div class="pad">
-                        <div class="playName">幸运哈希</div>
-                        <div class="high">
-                          最高赔率
-                          <span class="odds">1.98</span>
-                        </div>
-                        <div class="high">
-                          限注
-                          <span class="otherSize">0-200U</span>
-                        </div>
-                        <button class="gameButton">立即去玩</button>
+                    </template>
+                    <template v-else>
+                      <div style="text-align: center;">
+                        <img src="@/assets/images/nodata.png" class="nodata">
+                        <div class="morePlay">更多游戏正在研发中...</div>
                       </div>
-                    </div>
+                    </template>
 
-                    <div class="listBanner four">
-                      <div class="time_title">体验房</div>
-                      <div class="pad">
-                        <div class="playName">幸运哈希</div>
-                        <div class="high">
-                          最高赔率
-                          <span class="odds">1.98</span>
-                        </div>
-                        <div class="high">
-                          限注
-                          <span class="otherSize">0-200U</span>
-                        </div>
-                        <button class="gameButton">立即去玩</button>
-                      </div>
-                    </div>
-
-                    <div class="listBanner four">
-                      <div class="time_title">体验房</div>
-                      <div class="pad">
-                        <div class="playName">幸运哈希</div>
-                        <div class="high">
-                          最高赔率
-                          <span class="odds">1.98</span>
-                        </div>
-                        <div class="high">
-                          限注
-                          <span class="otherSize">0-200U</span>
-                        </div>
-                        <button class="gameButton">立即去玩</button>
-                      </div>
-                    </div>
                   </div>
                 </van-tab>
               </van-tabs>
@@ -366,9 +329,9 @@
         <!-- 内容区域 - end -->
 
         <!-- APP下载 - start -->
-        <div class="appdown  after flex-between-center">
+        <div v-if="isShowAppDown" class="appdown after flex-between-center">
           <div class="flex-center-center">
-            <i class="close_app van-icon van-icon-close" />
+            <i class="close_app van-icon van-icon-close" @click="isShowAppDown = !isShowAppDown" />
             <div>
               <div class="appTitle">下载哈博APP，体验更多竞彩乐趣</div>
             </div>
@@ -380,69 +343,334 @@
         <!-- APP下载 - start -->
       </div>
     </div>
-
-    <!-- 底部导航 - start -->
-    <div class="footer flex">
-      <div class="flex-1 flex-center-center">
-        <div class="nav flex-column-center">
-          <div class="footer-icon">
-            <img src="data:image/png;base64,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" class="animate__rubberBand">
-          </div>
-          <div>首页</div>
-        </div>
-      </div>
-      <div class="flex-1 flex-center-center">
-        <div class="nav flex-column-center">
-          <div class="footer-icon">
-            <img src="data:image/png;base64,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" class="animate__rubberBand">
-          </div>
-          <div>首页</div>
-        </div>
-      </div>
-      <div class="flex-1 flex-center-center">
-        <div class="nav flex-column-center">
-          <div class="footer-icon">
-            <img src="data:image/png;base64,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" class="animate__rubberBand">
-          </div>
-          <div>首页</div>
-        </div>
-      </div>
-      <div class="flex-1 flex-center-center">
-        <div class="nav flex-column-center">
-          <div class="footer-icon">
-            <img src="data:image/png;base64,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" class="animate__rubberBand">
-          </div>
-          <div>首页</div>
-        </div>
-      </div>
-    </div>
-    <!-- 底部导航 - end -->
+    <Nav />
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-
+import Nav from '@/components/Nav'
 export default {
-  name: 'Dashboard',
-  computed: {
-    ...mapGetters([
-      'name'
-    ])
+  name: 'Index',
+  components: { Nav },
+  metaInfo: {
+    title: '页面标题',
+    meta: [
+      { name: 'viewport', content: '页width=device-width,initial-scale=1面描述' },
+      { name: 'viewport', content: 'width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no' }
+    ]
   },
   data() {
     return {
-      switchLanguage: false
+      isReloadBalance: false,
+      isShowAppDown: true,
+      switchLanguage: false,
+      languageIndex: 0,
+      languageDefault: null,
+      languageList: [
+        {
+          id: 1,
+          name: '中文',
+          value: 'zh-CN',
+          key: 'zh',
+          url: require('@/assets/images/zh-CN.png')
+        },
+        {
+          id: 2,
+          name: 'ENG',
+          value: 'en-US',
+          key: 'en',
+          url: require('@/assets/images/en-US.png')
+        },
+        {
+          id: 3,
+          name: 'VN',
+          value: 'vi-VN',
+          key: 'vi',
+          url: require('@/assets/images/vi-VN.png')
+        }
+      ],
+
+      gameIndex: 0,
+      gameList: [
+        {
+          id: 1,
+          name: '幸运哈希',
+          enname: 'LUCKY_HASH',
+          children: [
+            {
+              id: 1,
+              gameId: 1,
+              name: '体验房',
+              maxOdds: '1.98',
+              min: 0,
+              max: 200,
+              img: 'https://designer-trip.com/image/game/Gamelogo/hash.png'
+            },
+            {
+              id: 2,
+              gameId: 1,
+              name: '初级房',
+              maxOdds: '1.98',
+              min: 10,
+              max: 5000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/hash1.png'
+            },
+            {
+              id: 3,
+              gameId: 1,
+              name: '中级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/hash2.png'
+            },
+            {
+              id: 4,
+              gameId: 1,
+              name: '高级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/hash3.png'
+            }
+          ]
+        },
+        {
+          id: 2,
+          name: '哈希PK拾',
+          enname: 'CHAMPION',
+          children: [
+            {
+              id: 5,
+              gameId: 2,
+              name: '体验房',
+              maxOdds: '1.98',
+              min: 0,
+              max: 200,
+              img: 'https://designer-trip.com/image/game/Gamelogo/champion.png'
+            },
+            {
+              id: 6,
+              gameId: 2,
+              name: '初级房',
+              maxOdds: '1.98',
+              min: 10,
+              max: 5000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/champion1.png'
+            },
+            {
+              id: 7,
+              gameId: 2,
+              name: '中级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/champion2.png'
+            },
+            {
+              id: 8,
+              gameId: 2,
+              name: '高级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/champion3.png'
+            }
+          ]
+        },
+
+        {
+          id: 3,
+          name: '哈希牛牛',
+          enname: 'HASH_NIUNIU',
+          children: [
+            {
+              id: 9,
+              gameId: 3,
+              name: '体验房',
+              maxOdds: '1.98',
+              min: 0,
+              max: 200,
+              img: 'https://designer-trip.com/image/game/Gamelogo/pair.png'
+            },
+            {
+              id: 10,
+              gameId: 3,
+              name: '初级房',
+              maxOdds: '1.98',
+              min: 10,
+              max: 5000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/pair1.png'
+            },
+            {
+              id: 11,
+              gameId: 3,
+              name: '中级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/pair2.png'
+            },
+            {
+              id: 12,
+              gameId: 3,
+              name: '高级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/pair3.png'
+            }
+          ]
+        },
+
+        {
+          id: 4,
+          name: '哈希两面',
+          enname: 'HASH_COMB',
+          children: [
+            {
+              id: 13,
+              gameId: 4,
+              name: '体验房',
+              maxOdds: '1.98',
+              min: 0,
+              max: 200,
+              img: 'https://designer-trip.com/image/game/Gamelogo/comb.png'
+            },
+            {
+              id: 14,
+              gameId: 4,
+              name: '初级房',
+              maxOdds: '1.98',
+              min: 10,
+              max: 5000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/comb1.png'
+            },
+            {
+              id: 15,
+              gameId: 4,
+              name: '中级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/comb2.png'
+            },
+            {
+              id: 16,
+              gameId: 4,
+              name: '高级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/comb3.png'
+            }
+          ]
+        },
+
+        {
+          id: 5,
+          name: '哈希百家乐',
+          enname: 'HASH_BJL',
+          children: [
+            {
+              id: 17,
+              gameId: 5,
+              name: '体验房',
+              maxOdds: '1.98',
+              min: 0,
+              max: 200,
+              img: 'https://designer-trip.com/image/game/Gamelogo/bai.png'
+            },
+            {
+              id: 18,
+              gameId: 5,
+              name: '初级房',
+              maxOdds: '1.98',
+              min: 10,
+              max: 5000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/bai1.png'
+            },
+            {
+              id: 19,
+              gameId: 5,
+              name: '中级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/bai2.png'
+            },
+            {
+              id: 20,
+              gameId: 5,
+              name: '高级房',
+              maxOdds: '1.98',
+              min: 100,
+              max: 10000,
+              img: 'https://designer-trip.com/image/game/Gamelogo/bai3.png'
+            }
+          ]
+        },
+
+        {
+          id: 4,
+          name: '敬请期待',
+          enname: 'WAIT'
+        }
+      ]
     }
   },
   created() {
-  }
+    this.languageDefault = this.languageList[this.languageIndex]
+  },
+  methods: {
+    handleswitchLanguage(item) {
+      this.languageIndex = item.id - 1
+      this.switchLanguage = false
+      this.languageDefault = this.languageList[this.languageIndex]
 
+      const lang = item.key
+      if (this.$i18n.locale === lang) {
+        return
+      }
+      this.$i18n.locale = lang
+      this.$store.dispatch('app/setLanguage', lang)
+    },
+    gameChange(index) {
+      this.gameIndex = index
+    },
+    gameEnter(item) {
+      if (item.gameId === 1) {
+        this.$router.push({ path: '/hash?id=' + item.id })
+      }
+      if (item.gameId === 2) {
+        this.$router.push({ path: '/champion?id=' + item.id })
+      }
+      if (item.gameId === 3) {
+        this.$router.push({ path: '/bull?id=' + item.id })
+      }
+      if (item.gameId === 4) {
+        this.$router.push({ path: '/comb?id=' + item.id })
+      }
+      if (item.gameId === 5) {
+        this.$router.push({ path: '/bjl?id=' + item.id })
+      }
+    },
+    handleReloadBalance() {
+      this.isReloadBalance = true
+      const sleep = (time, callbakc) => {
+        setTimeout(() => {
+          callbakc()
+        }, time)
+      }
+      sleep(3000, () => {
+        this.isReloadBalance = false
+      })
+    }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-
 .wrapper {
   font-family: Avenir,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -450,20 +678,6 @@ export default {
   display: flex;
   background-color: #fff;
   flex-direction: column;
-}
-
-.footer {
-  min-height: 3.4375rem;
-  font-size: .8125rem;
-  background: #fff;
-  box-shadow: 0 -0.125rem 1.5625rem rgb(0 0 0 / 8%);
-  border-radius: 1.25rem 1.25rem 0 0;
-  border-width: 0 0;
-  .footer-icon {
-    width: 1.375rem;
-    height: 1.375rem;
-    margin-bottom: 0.3125rem;
-  }
 }
 
 .my-swipe {
@@ -567,7 +781,6 @@ export default {
   background-size: 100% 100%;
   line-height: 2.5rem;
   text-align: center;
-  background-image: url(https://designer-trip.com/image/ac_haxi.png);
   span {
     margin-left: 1.4375rem;
     font-weight: 700;
@@ -597,7 +810,6 @@ export default {
     height: 10.625rem;
     margin-bottom: 0.625rem;
     background-size: cover;
-    background-image: url(https://designer-trip.com/image/game/Gamelogo/hash.png);
     .time_title {
       text-align: center;
       padding: 0.625rem;
@@ -640,6 +852,13 @@ export default {
   }
   .four[data-v-67079a18] {
     height: 10.625rem!important;
+  }
+  .nodata {
+    width: 30%;
+  }
+  .morePlay {
+    text-align: center;
+    color: #333;
   }
 }
 
@@ -764,6 +983,21 @@ export default {
         font-size: 1.0625rem;
         color: #ee4b00;
         margin-bottom: 0.3125rem;
+      }
+
+      .name {
+        text-align: left;
+        font-size: .9375rem;
+      }
+
+      .balance {
+        color: #e82300;
+        font-size: 1.25rem;
+        margin-top: 0.3125rem;
+        img {
+          width: 0.8125rem;
+          margin-left: 0.5rem;
+        }
       }
 
       .service {
