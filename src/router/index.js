@@ -36,16 +36,23 @@ export const constantRoutes = [
     component: () => import('@/views/login'),
     hidden: true
   },
-  {
-    path: '/test',
-    component: () => import('@/views/home/index'),
-    hidden: true
-  },
 
   {
     path: '/404',
     component: () => import('@/views/404'),
     hidden: true
+  },
+  {
+    path: '/help',
+    component: () => import('@/views/help')
+  },
+  {
+    path: '/setting',
+    component: () => import('@/views/setting')
+  },
+  {
+    path: '/record',
+    component: () => import('@/views/record')
   },
 
   {
@@ -134,6 +141,55 @@ export const constantRoutes = [
       {
         path: '/',
         component: () => import('@/views/mine'),
+        meta: { title: '' }
+      }
+    ]
+  },
+
+  // 存款
+  {
+    path: '/deposit',
+    component: Layout,
+    children: [
+      {
+        path: '/',
+        component: () => import('@/views/deposit'),
+        meta: { title: '' }
+      }
+    ]
+  },
+
+  // 取款
+  {
+    path: '/withdraw',
+    component: Layout,
+    children: [
+      {
+        path: '/',
+        component: () => import('@/views/withdraw'),
+        meta: { title: '' }
+      }
+    ]
+  },
+
+  // 报表
+  {
+    path: '/report',
+    component: Layout,
+    children: [
+      {
+        path: '/report/financial',
+        component: () => import('@/views/report/financial'),
+        meta: { title: '' }
+      },
+      {
+        path: '/report/promotion',
+        component: () => import('@/views/report/promotion'),
+        meta: { title: '' }
+      },
+      {
+        path: '/report/bet',
+        component: () => import('@/views/report/bet'),
         meta: { title: '' }
       }
     ]
